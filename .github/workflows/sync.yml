@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   sync:
-    if: github.repository == 'FarisZR/tap'
+    if: github.repository == 'FarisZR/homebrew-tap'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:

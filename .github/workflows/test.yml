@@ -38,6 +38,11 @@ jobs:
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew update
+          # Verify the documented command discovers the public repository.
+          brew tap fariszr/tap
+          git -C "$(brew --repo fariszr/tap)" remote get-url origin
+          brew untap fariszr/tap
+          # Install this exact commit after checking public tap discovery.
           brew tap fariszr/tap "$GITHUB_WORKSPACE"
           if brew commands | rg -qx trust; then
             brew trust fariszr/tap

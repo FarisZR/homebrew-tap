@@ -7,13 +7,12 @@ and [Komodo Agentic CLI](https://github.com/FarisZR/komodo-agentic-cli).
 
 ```bash
 brew update
-brew tap fariszr/tap https://github.com/FarisZR/tap.git
+brew tap fariszr/tap
 brew trust fariszr/tap
 brew install --cask fariszr/tap/knocker fariszr/tap/komodo-agentic-cli
 ```
 
-The explicit Git URL is required because this repository is named `tap`, rather
-than `homebrew-tap`. Commands installed: `knocker` and `km`.
+Commands installed: `knocker` and `km`.
 Use Homebrew 6 or newer with Linux cask support. Review this tap before the
 `brew trust` step; trust is required for third-party taps.
 
@@ -71,7 +70,7 @@ Create a **fine-grained personal access token** at
 | --- | --- |
 | Token name | `homebrew-tap-dispatch` |
 | Resource owner | `FarisZR` |
-| Repository access | Only selected repositories: **`FarisZR/tap`** |
+| Repository access | Only selected repositories: **`FarisZR/homebrew-tap`** |
 | Repository permission | **Actions: Read and write** |
 | Metadata | Read-only (automatically included) |
 | All other permissions | None; no Contents write, Workflows, Secrets, Administration, or Pull requests |
@@ -89,7 +88,7 @@ Add that same token as a **repository Actions secret**, named
 | `FarisZR/knocker-cli` | [Settings → Secrets and variables → Actions](https://github.com/FarisZR/knocker-cli/settings/secrets/actions) |
 | `FarisZR/komodo-agentic-cli` | [Settings → Secrets and variables → Actions](https://github.com/FarisZR/komodo-agentic-cli/settings/secrets/actions) |
 
-No PAT secret is needed in `FarisZR/tap`. Missing source-repository secrets emit a
+No PAT secret is needed in `FarisZR/homebrew-tap`. Missing source-repository secrets emit a
 warning and leave scheduled/manual synchronization available.
 After adding the secrets, run the tap's sync workflow once; no new release is
 required. The existing latest releases are already represented in this tap.
