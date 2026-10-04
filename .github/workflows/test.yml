@@ -44,9 +44,7 @@ jobs:
           brew untap fariszr/tap
           # Install this exact commit after checking public tap discovery.
           brew tap fariszr/tap "$GITHUB_WORKSPACE"
-          if brew commands | rg -qx trust; then
-            brew trust fariszr/tap
-          fi
+          brew trust fariszr/tap
           brew install --cask komodo-agentic-cli knocker-cli
           km --help
           knocker --help
