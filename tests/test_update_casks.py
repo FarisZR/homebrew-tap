@@ -21,33 +21,33 @@ def release(token, tag="v1.2.3"):
 
 class ReleaseValidation(unittest.TestCase):
     def test_missing_architecture_is_rejected(self):
-        data = release("knocker")
+        data = release("knocker-cli")
         data["assets"].pop()
         with self.assertRaisesRegex(ValueError, "missing"):
-            updater.render_cask("knocker", data)
+            updater.render_cask("knocker-cli", data)
 
     def test_draft_and_prerelease_are_rejected(self):
         for flag in ["draft", "prerelease"]:
-            data = release("knocker")
+            data = release("knocker-cli")
             data[flag] = True
             with self.assertRaisesRegex(ValueError, "stable"):
-                updater.render_cask("knocker", data)
+                updater.render_cask("knocker-cli", data)
 
     def test_untrusted_url_is_rejected(self):
-        data = release("knocker")
+        data = release("knocker-cli")
         data["assets"][0]["browser_download_url"] = "https://example.com/binary"
         with self.assertRaisesRegex(ValueError, "Unexpected"):
-            updater.render_cask("knocker", data)
+            updater.render_cask("knocker-cli", data)
 
     def test_incomplete_upload_is_rejected(self):
-        data = release("knocker")
+        data = release("knocker-cli")
         data["assets"][0]["state"] = "new"
         with self.assertRaises(ValueError):
-            updater.render_cask("knocker", data)
+            updater.render_cask("knocker-cli", data)
 
     def test_tag_cannot_inject_ruby(self):
         with self.assertRaisesRegex(ValueError, "tag"):
-            updater.render_cask("knocker", release("knocker", 'v1.2.3#{system("bad")}'))
+            updater.render_cask("knocker-cli", release("knocker-cli", 'v1.2.3#{system("bad")}'))
 
     def test_agentic_tag_is_a_stable_release(self):
         cask = updater.render_cask("komodo-agentic-cli", release("komodo-agentic-cli", "v2.2.0-agentic"))
@@ -56,7 +56,7 @@ class ReleaseValidation(unittest.TestCase):
 
     def test_no_files_written_when_one_release_is_incomplete(self):
         first = release("komodo-agentic-cli")
-        second = release("knocker")
+        second = release("knocker-cli")
         second["assets"] = []
         with patch.object(updater, "latest_release", side_effect=[first, second]), patch.object(Path, "write_text") as write:
             with self.assertRaises(ValueError):

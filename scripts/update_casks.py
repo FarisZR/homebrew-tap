@@ -16,7 +16,7 @@ PROJECTS = {
         "description": "Agent-oriented CLI for Komodo deployment management",
         "assets": {"arm64_linux": "km-aarch64", "x86_64_linux": "km-x86_64"},
     },
-    "knocker": {
+    "knocker-cli": {
         "repo": "FarisZR/knocker-cli",
         "name": "Knocker CLI",
         "description": "Keep your external IP address whitelisted",

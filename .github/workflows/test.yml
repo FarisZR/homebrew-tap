@@ -19,7 +19,7 @@ jobs:
       - run: python3 -m unittest discover -s tests -v
       - run: |
           ruby -c Casks/komodo-agentic-cli.rb
-          ruby -c Casks/knocker.rb
+          ruby -c Casks/knocker-cli.rb
   install:
     strategy:
       fail-fast: false
@@ -47,7 +47,7 @@ jobs:
           if brew commands | rg -qx trust; then
             brew trust fariszr/tap
           fi
-          brew install --cask fariszr/tap/komodo-agentic-cli fariszr/tap/knocker
+          brew install --cask komodo-agentic-cli knocker-cli
           km --help
           knocker --help
-          brew uninstall --cask fariszr/tap/komodo-agentic-cli fariszr/tap/knocker
+          brew uninstall --cask komodo-agentic-cli knocker-cli

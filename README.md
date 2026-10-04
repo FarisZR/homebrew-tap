@@ -9,16 +9,20 @@ and [Komodo Agentic CLI](https://github.com/FarisZR/komodo-agentic-cli).
 brew update
 brew tap fariszr/tap
 brew trust fariszr/tap
-brew install --cask fariszr/tap/knocker fariszr/tap/komodo-agentic-cli
+brew install --cask knocker-cli komodo-agentic-cli
 ```
 
-Commands installed: `knocker` and `km`.
+Homebrew maps `fariszr/tap` to the GitHub repository `FarisZR/homebrew-tap`;
+the `homebrew-` prefix is omitted from the tap command. Once tapped and trusted,
+packages can be installed by their short names as shown above. Package tokens
+use lowercase letters and hyphens, not spaces: `knocker-cli` and
+`komodo-agentic-cli`. Commands installed: `knocker` and `km`.
 Use Homebrew 6 or newer with Linux cask support. Review this tap before the
 `brew trust` step; trust is required for third-party taps.
 
 | Package | Installed command | Supported platforms |
 | --- | --- | --- |
-| `knocker` | `knocker` | Linux x86_64 and ARM64 |
+| `knocker-cli` | `knocker` | Linux x86_64 and ARM64 |
 | `komodo-agentic-cli` | `km` | Linux x86_64 and ARM64 |
 
 These packages currently require Linux; the tap does not provide macOS builds.
@@ -32,12 +36,27 @@ The tap does not automatically install or restart Knocker's systemd service.
 
 ```bash
 brew update
-brew upgrade --cask fariszr/tap/knocker fariszr/tap/komodo-agentic-cli
+brew upgrade --cask knocker-cli komodo-agentic-cli
 ```
 
 Installing the tap makes new releases available to Homebrew. Run the update
 commands above to install them on your device; syncing the tap does not upgrade
 your local installation or restart running services.
+
+### Existing installations
+
+The tap name remains `fariszr/tap` after the repository rename. If you previously
+added it with the old explicit URL, point its existing checkout at the new URL:
+
+```bash
+git -C "$(brew --repository fariszr/tap)" remote set-url origin https://github.com/FarisZR/homebrew-tap.git
+brew update
+brew trust fariszr/tap
+brew upgrade --cask knocker-cli komodo-agentic-cli
+```
+
+The tap includes Homebrew rename metadata for the old `knocker` cask, so existing
+installations can migrate to `knocker-cli`. The executable remains `knocker`.
 
 ## Release automation
 

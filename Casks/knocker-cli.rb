@@ -1,4 +1,4 @@
-cask "knocker" do
+cask "knocker-cli" do
   arch arm: "arm64", intel: "x86_64"
 
   version "1.0.0"

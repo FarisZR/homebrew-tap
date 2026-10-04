@@ -37,7 +37,7 @@ jobs:
       - name: Validate Ruby syntax
         run: |
           ruby -c Casks/komodo-agentic-cli.rb
-          ruby -c Casks/knocker.rb
+          ruby -c Casks/knocker-cli.rb
       - name: Commit package updates
         run: |
           git add Casks/
