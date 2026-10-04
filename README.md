@@ -8,14 +8,21 @@ and [Komodo Agentic CLI](https://github.com/FarisZR/komodo-agentic-cli).
 ```bash
 brew update
 brew tap fariszr/tap https://github.com/FarisZR/tap.git
+brew trust fariszr/tap
 brew install --cask fariszr/tap/knocker fariszr/tap/komodo-agentic-cli
 ```
 
 The explicit Git URL is required because this repository is named `tap`, rather
 than `homebrew-tap`. Commands installed: `knocker` and `km`.
-Use a current Homebrew version with Linux cask support. If your Homebrew version
-requests third-party tap trust, review this repository, then run
-`brew trust fariszr/tap` once on your own machine.
+Use Homebrew 6 or newer with Linux cask support. Review this tap before the
+`brew trust` step; trust is required for third-party taps.
+
+| Package | Installed command | Supported platforms |
+| --- | --- | --- |
+| `knocker` | `knocker` | Linux x86_64 and ARM64 |
+| `komodo-agentic-cli` | `km` | Linux x86_64 and ARM64 |
+
+These packages currently require Linux; the tap does not provide macOS builds.
 
 Komodo uses the existing Ubuntu 24.04 GNU/Linux release binaries, including their
 glibc/OpenSSL runtime requirements. Homebrew packaging does not make them static
@@ -28,6 +35,10 @@ The tap does not automatically install or restart Knocker's systemd service.
 brew update
 brew upgrade --cask fariszr/tap/knocker fariszr/tap/komodo-agentic-cli
 ```
+
+Installing the tap makes new releases available to Homebrew. Run the update
+commands above to install them on your device; syncing the tap does not upgrade
+your local installation or restart running services.
 
 ## Release automation
 
