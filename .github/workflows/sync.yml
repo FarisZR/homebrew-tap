@@ -1,0 +1,51 @@
+name: Sync release casks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+  push:
+    branches: [main]
+    paths:
+      - scripts/update_casks.py
+      - .github/workflows/sync.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-release-casks
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'FarisZR/tap'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+      - name: Test updater
+        run: python3 -m unittest discover -s tests -v
+      - name: Generate casks from latest stable releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/update_casks.py
+      - name: Validate Ruby syntax
+        run: |
+          ruby -c Casks/komodo-agentic-cli.rb
+          ruby -c Casks/knocker.rb
+      - name: Commit package updates
+        run: |
+          git add Casks/
+          if git diff --cached --quiet; then
+            echo "Casks already match the latest releases."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "Update casks from latest stable releases"
+          git push origin HEAD:main

@@ -1,0 +1,48 @@
+name: Test tap
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  updater:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest discover -s tests -v
+      - run: |
+          ruby -c Casks/komodo-agentic-cli.rb
+          ruby -c Casks/knocker.rb
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install and run both release binaries with Homebrew
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew update
+          brew tap fariszr/tap "$GITHUB_WORKSPACE"
+          if brew commands | rg -qx trust; then
+            brew trust fariszr/tap
+          fi
+          brew install --cask fariszr/tap/komodo-agentic-cli fariszr/tap/knocker
+          km --help
+          knocker --help
+          brew uninstall --cask fariszr/tap/komodo-agentic-cli fariszr/tap/knocker
