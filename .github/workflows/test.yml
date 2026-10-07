@@ -20,6 +20,7 @@ jobs:
       - run: |
           ruby -c Casks/komodo-agentic-cli.rb
           ruby -c Casks/knocker-cli.rb
+          ruby -c Casks/whisper-stt-gnome-extension.rb
   install:
     strategy:
       fail-fast: false
@@ -31,7 +32,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - name: Install and run both release binaries with Homebrew
+      - name: Install release packages with Homebrew
         env:
           HOMEBREW_NO_AUTO_UPDATE: "1"
           HOMEBREW_NO_INSTALL_CLEANUP: "1"
@@ -48,4 +49,15 @@ jobs:
           brew install --cask komodo-agentic-cli knocker-cli
           km --help
           knocker --help
+          brew install --cask whisper-stt-gnome-extension
+          extension="$HOME/.local/share/gnome-shell/extensions/whisper-stt@fariszr.com"
+          test -f "$extension/extension.js"
+          test -f "$extension/src/core/whisperController.js"
+          test -f "$extension/schemas/gschemas.compiled"
+          python3 -c 'import json, sys; metadata = json.load(open(sys.argv[1])); assert metadata["uuid"] == "whisper-stt@fariszr.com"; assert metadata["shell-version"] == ["49", "50"]' "$extension/metadata.json"
+          # Reinstallation exercises Homebrew's directory replacement lifecycle.
+          brew reinstall --cask whisper-stt-gnome-extension
+          test -f "$extension/schemas/gschemas.compiled"
+          brew uninstall --cask whisper-stt-gnome-extension
+          test ! -e "$extension"
           brew uninstall --cask komodo-agentic-cli knocker-cli

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synchronize the two casks with their latest published stable releases."""
+"""Synchronize casks with their latest complete published releases."""
 
 import hashlib
 import json
@@ -24,6 +24,12 @@ PROJECTS = {
             "arm64_linux": "knocker-cli_Linux_arm64.tar.gz",
             "x86_64_linux": "knocker-cli_Linux_x86_64.tar.gz",
         },
+    },
+    "whisper-stt-gnome-extension": {
+        "repo": "FarisZR/whisper-stt-gnome-extension",
+        "name": "Whisper STT GNOME Extension",
+        "description": "GNOME dictation using an OpenAI-compatible speech-to-text endpoint",
+        "assets": {"portable": "whisper-stt-gnome-extension.tar.gz"},
     },
 }
 
@@ -57,9 +63,11 @@ def render_cask(token, release):
     tag = release.get("tag_name", "")
     if release.get("draft") or release.get("prerelease"):
         raise ValueError("Only published stable releases can enter the tap")
-    if not re.fullmatch(r"v?\d+\.\d+\.\d+(?:[.+-][A-Za-z0-9.-]+)?", tag):
+    pattern = (r"build-[0-9a-f]{40}" if token == "whisper-stt-gnome-extension"
+               else r"v?\d+\.\d+\.\d+(?:[.+-][A-Za-z0-9.-]+)?")
+    if not re.fullmatch(pattern, tag):
         raise ValueError(f"Unsupported release tag: {tag!r}")
-    version = tag.removeprefix("v")
+    version = tag.removeprefix("build-") if token == "whisper-stt-gnome-extension" else tag.removeprefix("v")
     assets = {asset["name"]: asset for asset in release["assets"]}
     checksums = {}
     for architecture, name in project["assets"].items():
@@ -67,6 +75,33 @@ def render_cask(token, release):
             raise ValueError(f"{project['repo']} {tag}: missing {name}; release build may still be running")
         url = f"https://github.com/{project['repo']}/releases/download/{tag}/{name}"
         checksums[architecture] = asset_checksum(assets[name], url)
+    if token == "whisper-stt-gnome-extension":
+        return "\n".join([
+            f'cask "{token}" do',
+            f'  version "{version}"',
+            f'  sha256 "{checksums["portable"]}"',
+            "",
+            f'  url "https://github.com/{project["repo"]}/releases/download/{tag}/whisper-stt-gnome-extension.tar.gz"',
+            f'  name "{project["name"]}"',
+            f'  desc "{project["description"]}"',
+            f'  homepage "https://github.com/{project["repo"]}"',
+            "",
+            "  depends_on :linux",
+            "",
+            '  artifact "whisper-stt@fariszr.com",',
+            '           target: "~/.local/share/gnome-shell/extensions/whisper-stt@fariszr.com"',
+            "",
+            "  caveats <<~EOS",
+            "    Requires GNOME Shell 49 or 50, GStreamer tools/plugins (including pulseaudio),",
+            "    curl, and libcanberra's canberra-gtk-play for notification sounds.",
+            "    Log out and back in, then enable the extension:",
+            "      gnome-extensions enable whisper-stt@fariszr.com",
+            "    Configure your transcription endpoint in:",
+            "      gnome-extensions prefs whisper-stt@fariszr.com",
+            "    After upgrading, log out and back in to load the new build.",
+            "  EOS",
+            "end", "",
+        ])
     arch = 'arch arm: "aarch64", intel: "x86_64"' if token == "komodo-agentic-cli" else 'arch arm: "arm64", intel: "x86_64"'
     asset_name = 'km-#{arch}' if token == "komodo-agentic-cli" else 'knocker-cli_Linux_#{arch}.tar.gz'
     lines = [
@@ -94,7 +129,7 @@ def render_cask(token, release):
 
 def main():
     # Render everything before writing: an incomplete release never partially
-    # updates the tap. Every trigger re-reads both latest releases, so old or
+    # updates the tap. Every trigger re-reads all latest releases, so old or
     # coalesced dispatch events cannot select an old tag or arbitrary repository.
     rendered = {token: render_cask(token, latest_release(project["repo"]))
                 for token, project in PROJECTS.items()}

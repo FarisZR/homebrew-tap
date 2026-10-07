@@ -26,6 +26,7 @@ each source repository:
 | --- | --- |
 | `FarisZR/knocker-cli` | [Actions secrets](https://github.com/FarisZR/knocker-cli/settings/secrets/actions) |
 | `FarisZR/komodo-agentic-cli` | [Actions secrets](https://github.com/FarisZR/komodo-agentic-cli/settings/secrets/actions) |
+| `FarisZR/whisper-stt-gnome-extension` | [Actions secrets](https://github.com/FarisZR/whisper-stt-gnome-extension/settings/secrets/actions) |
 
 No PAT is required in the tap repository. Never commit credentials or print
 their values in workflow logs.
@@ -44,6 +45,9 @@ dispatch happened; inspect its warning output and the tap's workflow runs.
 | Knocker release publication | Contents: write | Publish release assets in Knocker's repository |
 | Knocker notification | None | Uses the separate PAT for tap dispatch |
 | Komodo notification | None | Uses the separate PAT for tap dispatch |
+| Extension build/tests | Contents: read | Read source and build bundles |
+| Extension rolling publication | Contents: write | Publish commit releases in the extension repository |
+| Extension notification | None | Uses the separate PAT for tap dispatch |
 
 The tap's sync workflow defaults to Contents read; only the sync job requests
 write. The source repositories' built-in tokens cannot substitute for the PAT
@@ -58,12 +62,14 @@ to publish pull requests if such rules are enabled.
 1. Create the token and set `TAP_GITHUB_TOKEN` in each source repository.
 2. For Komodo, manually run `Update Homebrew tap` and confirm a corresponding
    `Sync release casks` run appears in the tap.
-3. For Knocker, confirm its notification on the next successful release build.
+3. For the extension, push to `main` or manually run `Build extension` on `main`,
+   then confirm both the rolling release and the tap sync. For Knocker, confirm
+   its notification on the next successful release build.
    Running its release workflow manually rebuilds an existing tag; it is not
    a notification-only test.
 4. To synchronize immediately without rebuilding a source release, run the
    tap's `Sync release casks` workflow manually.
 
 Choose a manageable expiry. Before expiration, create a replacement with the
-same repository scope and permissions, update both source secrets, verify
+same repository scope and permissions, update all source secrets, verify
 dispatch, and revoke the old token. The secret name stays unchanged.
