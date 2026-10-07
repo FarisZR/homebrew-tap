@@ -20,6 +20,7 @@ From the tap checkout, with Python 3 and Ruby installed:
 python3 -m unittest discover -s tests -v
 ruby -c Casks/knocker-cli.rb
 ruby -c Casks/komodo-agentic-cli.rb
+ruby -c Casks/whisper-stt-gnome-extension.rb
 git diff --check
 ```
 
@@ -42,8 +43,8 @@ overwrites manual cask edits.
 2. Add the package token, repository, display name, description, and asset names
    to `PROJECTS` in `scripts/update_casks.py`.
 3. Extend `render_cask` for the new project's architecture names, URL template,
-   archive format, and executable. It currently handles Komodo explicitly and
-   treats every other token as Knocker; adding a dictionary entry alone is
+   archive format, and executable. It handles the extension as a portable directory artifact and the two
+   CLIs as architecture-specific binaries. Adding a dictionary entry alone is
    insufficient.
 4. Add meaningful coverage for the new asset contract and run the updater.
 5. Extend Ruby checks in both workflows and installation/help/uninstall
@@ -59,6 +60,23 @@ projects. Add new rename mappings to `cask_renames.json` when retiring a token.
 
 The current updater processes all projects together. A missing asset in one
 project blocks the entire sync, which should be considered when adding projects.
+
+## Rolling extension builds
+
+Each successful build of current `main` in the extension repository publishes a
+`build-<full commit hash>` release. Reruns retain published assets. The tap uses
+GitHub's latest release selection and the commit hash as the cask version; it
+never parses commit hashes as semantic versions. Homebrew casks compare installed
+and available version strings for equality, so a new hash is offered as an update.
+
+The first package is seeded from the existing `main` commit. Merge the extension
+build workflow to enable subsequent builds, then merge the tap integration.
+Add `TAP_GITHUB_TOKEN` to the extension for immediate notifications; the six-hour
+schedule also finds new builds. See [tokens](tokens.md).
+
+A draft release is kept unpublished until all three assets are uploaded and
+validated. Delete an incomplete draft and rerun on `main` to recover a failed
+upload. Published assets must never be replaced, since casks pin their checksums.
 
 ## Repository and package migrations
 

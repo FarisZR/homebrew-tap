@@ -9,7 +9,8 @@ updater = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(updater)
 
 
-def release(token, tag="v1.2.3"):
+def release(token, tag=None):
+    tag = tag or ("build-" + "b" * 40 if token == "whisper-stt-gnome-extension" else "v1.2.3")
     project = updater.PROJECTS[token]
     return {
         "tag_name": tag, "draft": False, "prerelease": False,
@@ -20,6 +21,45 @@ def release(token, tag="v1.2.3"):
 
 
 class ReleaseValidation(unittest.TestCase):
+    def test_extension_version_is_commit_hash(self):
+        cask = updater.render_cask("whisper-stt-gnome-extension", release("whisper-stt-gnome-extension"))
+        self.assertIn('version "' + "b" * 40 + '"', cask)
+
+    def test_extension_rejects_non_commit_versions(self):
+        for tag in ["v1.2.3", "build-main", "build-abcdef0"]:
+            with self.subTest(tag=tag), self.assertRaisesRegex(ValueError, "tag"):
+                updater.render_cask("whisper-stt-gnome-extension", release("whisper-stt-gnome-extension", tag))
+
+    def test_extension_uses_one_portable_asset_and_user_extension_directory(self):
+        cask = updater.render_cask("whisper-stt-gnome-extension", release("whisper-stt-gnome-extension"))
+        self.assertIn('whisper-stt-gnome-extension.tar.gz"', cask)
+        self.assertIn('sha256 "' + "a" * 64 + '"', cask)
+        self.assertIn('artifact "whisper-stt@fariszr.com"', cask)
+        self.assertIn('target: "~/.local/share/gnome-shell/extensions/whisper-stt@fariszr.com"', cask)
+        self.assertIn('depends_on :linux', cask)
+        self.assertNotIn('arch ', cask)
+        self.assertNotIn('binary ', cask)
+
+    def test_extension_missing_bundle_is_rejected(self):
+        data = release("whisper-stt-gnome-extension")
+        data["assets"] = []
+        with self.assertRaisesRegex(ValueError, "missing whisper-stt-gnome-extension.tar.gz"):
+            updater.render_cask("whisper-stt-gnome-extension", data)
+
+    def test_extension_untrusted_url_is_rejected(self):
+        data = release("whisper-stt-gnome-extension")
+        data["assets"][0]["browser_download_url"] = "https://example.com/extension.tar.gz"
+        with self.assertRaisesRegex(ValueError, "Unexpected"):
+            updater.render_cask("whisper-stt-gnome-extension", data)
+
+    def test_no_cli_changes_written_when_extension_bundle_is_incomplete(self):
+        data = [release(token) for token in updater.PROJECTS]
+        data[-1]["assets"] = []
+        with patch.object(updater, "latest_release", side_effect=data), patch.object(Path, "write_text") as write:
+            with self.assertRaisesRegex(ValueError, "missing"):
+                updater.main()
+            write.assert_not_called()
+
     def test_missing_architecture_is_rejected(self):
         data = release("knocker-cli")
         data["assets"].pop()
