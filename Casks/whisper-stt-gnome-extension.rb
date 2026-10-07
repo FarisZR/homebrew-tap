@@ -1,8 +1,8 @@
 cask "whisper-stt-gnome-extension" do
-  version "d4048fc37740adea30b365f7d224d16f7890c55e"
-  sha256 "09ede2a81c637996ee1158e80aab3b26b13582f215b04e1160a771b55e7f625f"
+  version "90e5463fcba843e8f3cf2cf93e882cd9e723a284"
+  sha256 "e0bc793fef5ee4b38506e53313305d5ffa78b1821c9f7370de701ed2e64cc600"
 
-  url "https://github.com/FarisZR/whisper-stt-gnome-extension/releases/download/build-d4048fc37740adea30b365f7d224d16f7890c55e/whisper-stt-gnome-extension.tar.gz"
+  url "https://github.com/FarisZR/whisper-stt-gnome-extension/releases/download/build-90e5463fcba843e8f3cf2cf93e882cd9e723a284/whisper-stt-gnome-extension.tar.gz"
   name "Whisper STT GNOME Extension"
   desc "GNOME dictation using an OpenAI-compatible speech-to-text endpoint"
   homepage "https://github.com/FarisZR/whisper-stt-gnome-extension"
