@@ -21,6 +21,21 @@ def release(token, tag=None):
 
 
 class ReleaseValidation(unittest.TestCase):
+    def test_gseek_registers_provider_system_wide_and_keeps_app_per_user(self):
+        cask = updater.render_cask("gseek", release("gseek"))
+        self.assertIn('arch arm: "aarch64", intel: "x86_64"', cask)
+        self.assertIn('artifact "gseek", target: "~/.local/share/gseek-app"', cask)
+        self.assertIn('target: "/usr/local/share/gnome-shell/search-providers/io.github.FarisZR.GSeek.ini"', cask)
+        self.assertIn('args: ["integrate", "--launcher"', cask)
+        self.assertIn('args: ["unintegrate"]', cask)
+        self.assertIn('depends_on formula: %w[ffmpeg poppler libarchive]', cask)
+
+    def test_gseek_rejects_missing_architecture(self):
+        data = release("gseek")
+        data["assets"].pop()
+        with self.assertRaisesRegex(ValueError, "missing"):
+            updater.render_cask("gseek", data)
+
     def test_extension_version_is_commit_hash(self):
         cask = updater.render_cask("whisper-stt-gnome-extension", release("whisper-stt-gnome-extension"))
         self.assertIn('version "' + "b" * 40 + '"', cask)
@@ -54,7 +69,7 @@ class ReleaseValidation(unittest.TestCase):
 
     def test_no_cli_changes_written_when_extension_bundle_is_incomplete(self):
         data = [release(token) for token in updater.PROJECTS]
-        data[-1]["assets"] = []
+        data[list(updater.PROJECTS).index("whisper-stt-gnome-extension")]["assets"] = []
         with patch.object(updater, "latest_release", side_effect=data), patch.object(Path, "write_text") as write:
             with self.assertRaisesRegex(ValueError, "missing"):
                 updater.main()
