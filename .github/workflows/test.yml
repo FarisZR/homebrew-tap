@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - run: python3 -m unittest discover -s tests -v
@@ -21,6 +21,7 @@ jobs:
           ruby -c Casks/komodo-agentic-cli.rb
           ruby -c Casks/knocker-cli.rb
           ruby -c Casks/whisper-stt-gnome-extension.rb
+          ruby -c Casks/gseek.rb
   install:
     strategy:
       fail-fast: false
@@ -29,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Install release packages with Homebrew
@@ -61,3 +62,34 @@ jobs:
           brew uninstall --cask whisper-stt-gnome-extension
           test ! -e "$extension"
           brew uninstall --cask komodo-agentic-cli knocker-cli
+      - name: Test GSeek native desktop lifecycle
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+          GSETTINGS_BACKEND: memory
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          sudo apt-get update
+          sudo apt-get install -y libgtk-4-1 libadwaita-1-0 libtracker-sparql-3.0-0 gsettings-desktop-schemas xvfb xauth dbus-x11
+          brew install --cask gseek
+          gseek --version
+          gseek_data="${XDG_DATA_HOME:-$HOME/.local/share}"
+          gseek_config="${XDG_CONFIG_HOME:-$HOME/.config}"
+          provider=/usr/local/share/gnome-shell/search-providers/io.github.FarisZR.GSeek.ini
+          desktop="$gseek_data/applications/io.github.FarisZR.GSeek.desktop"
+          activation="$gseek_data/dbus-1/services/io.github.FarisZR.GSeek.Service.service"
+          autostart="$gseek_config/autostart/io.github.FarisZR.GSeek.desktop"
+          for path in "$provider" "$desktop" "$activation" "$autostart"; do test -f "$path"; done
+          printf 'Keep my indexed data\n' > "$gseek_data/gseek/test-preserved-data.txt"
+          set +e
+          xvfb-run -a dbus-run-session -- timeout 3 gseek > /tmp/gseek-gui.log 2>&1
+          gui_status=$?
+          set -e
+          test "$gui_status" = 124
+          if grep -E 'CRITICAL|symbol lookup error' /tmp/gseek-gui.log; then cat /tmp/gseek-gui.log; exit 1; fi
+          brew reinstall --cask gseek
+          gseek --version
+          test -f "$provider"
+          brew uninstall --cask gseek
+          for path in "$provider" "$desktop" "$activation" "$autostart"; do test ! -e "$path"; done
+          test -f "$gseek_data/gseek/test-preserved-data.txt"
