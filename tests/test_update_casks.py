@@ -25,9 +25,9 @@ class ReleaseValidation(unittest.TestCase):
         cask = updater.render_cask("gseek", release("gseek"))
         self.assertIn('arch arm: "aarch64", intel: "x86_64"', cask)
         self.assertIn('artifact "gseek", target: "~/.local/share/gseek-app"', cask)
-        self.assertIn('delete: "/usr/local/share/gnome-shell/search-providers/io.github.FarisZR.GSeek.ini"', cask)
-        self.assertIn('system_command "/usr/bin/install"', cask)
-        self.assertIn('args: ["integrate", "--launcher"', cask)
+        self.assertIn('remove "/usr/local/share/gnome-shell/search-providers/io.github.FarisZR.GSeek.ini", sudo: true', cask)
+        self.assertIn('run "/usr/bin/install"', cask)
+        self.assertIn('args: ["integrate"]', cask)
         self.assertIn('args: ["unintegrate"]', cask)
         self.assertIn('depends_on formula: %w[ffmpeg poppler libarchive]', cask)
 
