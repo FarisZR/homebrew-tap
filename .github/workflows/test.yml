@@ -71,6 +71,8 @@ jobs:
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           sudo apt-get update
           sudo apt-get install -y libgtk-4-1 libadwaita-1-0 libtracker-sparql-3.0-0 gsettings-desktop-schemas xvfb xauth dbus-x11
+          gseek_dependencies=$(brew deps --cask gseek)
+          test -z "$gseek_dependencies"
           brew install --cask gseek
           gseek --version
           gseek_data="${XDG_DATA_HOME:-$HOME/.local/share}"
@@ -80,6 +82,8 @@ jobs:
           activation="$gseek_data/dbus-1/services/io.github.FarisZR.GSeek.Service.service"
           autostart="$gseek_config/autostart/io.github.FarisZR.GSeek.desktop"
           for path in "$provider" "$desktop" "$activation" "$autostart"; do test -f "$path"; done
+          icon=$(sed -n 's/^Icon=//p' "$desktop")
+          python3 -c 'import pathlib,sys; p=pathlib.Path(sys.argv[1]); assert p.is_absolute(); assert p.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")' "$icon"
           printf 'Keep my indexed data\n' > "$gseek_data/gseek/test-preserved-data.txt"
           set +e
           xvfb-run -a dbus-run-session -- timeout 3 gseek > /tmp/gseek-gui.log 2>&1
@@ -91,5 +95,5 @@ jobs:
           gseek --version
           test -f "$provider"
           brew uninstall --cask gseek
-          for path in "$provider" "$desktop" "$activation" "$autostart"; do test ! -e "$path"; done
+          for path in "$provider" "$desktop" "$activation" "$autostart" "$icon"; do test ! -e "$path"; done
           test -f "$gseek_data/gseek/test-preserved-data.txt"
