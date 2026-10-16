@@ -50,15 +50,21 @@ manages that directory through installation, upgrades, and uninstall.
 
 GSeek targets GNOME 51 (Fedora Workstation 45 and Ubuntu 26.10), on x86-64 and
 ARM64. It uses your desktop’s GTK4, libadwaita, and LocalSearch libraries. The cask
-installs media readers and the upstream runtime’s OpenSSL dependency, and registers the native app, background activation, and
-search provider. Administrator permission is needed for the small system provider
-registration under `/usr/local/share`.
+registers the native app, background activation, and search provider.
+Administrator permission is needed for the small system provider registration
+under `/usr/local/share`.
 
 Open GSeek from the application menu, choose folders, and select Download & Start.
 The 865 MB EmbeddingGemma 2 model and selected official upstream runtime download
 automatically. CPU, Vulkan, and NVIDIA CUDA are supported without an SDK or
 inference compilation; AMD GPUs use Vulkan. Downloads are version-pinned and
 checksum-verified.
+
+GSeek reuses installed system readers: FFmpeg for media, Poppler utilities for
+PDFs, and unzip for Office documents. It does not install a duplicate Homebrew
+media stack. The cask requests zero formulas on hosts with OpenSSL 3; hosts missing
+that ABI receive only its compatibility dependency. Setup and Preferences show
+available formats, and missing readers produce system-install/retry guidance.
 Folders must also be enabled in GNOME Search Locations. Setup replaces the Files
 search provider after inference is validated.
 

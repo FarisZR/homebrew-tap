@@ -1,17 +1,24 @@
 cask "gseek" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "0.1.0"
-  sha256 arm64_linux:  "dda3109cff07231b744310dbb492a7dbc8efc6adca2a4d6c4576b00ddab245f6",
-         x86_64_linux: "85004aedb2eb8d20dbeae327e74d7b09359c3ca55c7563477adbc16692c95737"
+  version "0.1.1"
+  sha256 arm64_linux:  "8edf89796dac5dc19b52f4d49630b4344c5a0169462d7dee374185ad6b681973",
+         x86_64_linux: "08a718be153345b0b12cf7c298555bf329a733144d5c08666083a1007264e2d3"
 
-  url "https://github.com/FarisZR/GSeek/releases/download/v0.1.0/gseek-linux-#{arch}.tar.gz"
+  url "https://github.com/FarisZR/GSeek/releases/download/v0.1.1/gseek-linux-#{arch}.tar.gz"
   name "GSeek"
   desc "Private multilingual semantic file search for GNOME"
   homepage "https://github.com/FarisZR/GSeek"
 
   depends_on :linux
-  depends_on formula: %w[ffmpeg poppler libarchive openssl@3]
+  # Reuse the host ABI. Fedora's OpenSSL 4-only installations need compatibility libraries.
+  ssl_dirs = ["/usr/lib64", "/lib64", "/usr/lib/#{arch}-linux-gnu",
+              "/lib/#{arch}-linux-gnu", "/usr/lib", "/lib"]
+  system_ssl3 = ssl_dirs.any? do |dir|
+    File.file?(File.join(dir, "libssl.so.3")) && File.file?(File.join(dir, "libcrypto.so.3"))
+  end
+  depends_on formula: "openssl@3" unless system_ssl3
+  runtime_libraries = system_ssl3 ? "" : "{{HOMEBREW_PREFIX}}/opt/openssl@3/lib"
 
   artifact "gseek", target: "~/.local/share/gseek-app"
   binary "#{Dir.home}/.local/share/gseek-app/bin/gseek", target: "gseek"
@@ -43,6 +50,7 @@ cask "gseek" do
                "/usr/local/share/gnome-shell/search-providers/io.github.FarisZR.GSeek.ini"],
         sudo: true
     write_file "~/.local/share/gseek-app/homebrew-prefix", "{{HOMEBREW_PREFIX}}\n"
+    write_file "~/.local/share/gseek-app/runtime-library-path", "#{runtime_libraries}\n"
     run app_launcher,
         args: ["integrate"],
         env: integration_env,
