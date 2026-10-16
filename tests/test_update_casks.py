@@ -29,7 +29,9 @@ class ReleaseValidation(unittest.TestCase):
         self.assertIn('run "/usr/bin/install"', cask)
         self.assertIn('args: ["integrate"]', cask)
         self.assertIn('args: ["unintegrate"]', cask)
-        self.assertIn('depends_on formula: %w[ffmpeg poppler libarchive openssl@3]', cask)
+        self.assertIn('depends_on formula: "openssl@3" unless system_ssl3', cask)
+        for package in ["ffmpeg", "poppler", "libarchive", "pulseaudio"]:
+            self.assertNotIn('depends_on formula: "' + package + '"', cask)
 
     def test_gseek_rejects_missing_architecture(self):
         data = release("gseek")
