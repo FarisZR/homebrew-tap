@@ -27,8 +27,8 @@ class ReleaseValidation(unittest.TestCase):
         self.assertIn('artifact "gseek", target: "~/.local/share/gseek-app"', cask)
         self.assertIn('remove "/usr/local/share/gnome-shell/search-providers/io.github.FarisZR.GSeek.ini", sudo: true', cask)
         self.assertIn('run "/usr/bin/install"', cask)
-        self.assertIn('args: ["integrate"]', cask)
-        self.assertIn('args: ["unintegrate"]', cask)
+        self.assertIn('args: [*integration_args, "integrate"]', cask)
+        self.assertIn('args: [*integration_args, "unintegrate"]', cask)
         self.assertIn('depends_on formula: "openssl@3" unless system_ssl3', cask)
         for package in ["ffmpeg", "poppler", "libarchive", "pulseaudio"]:
             self.assertNotIn('depends_on formula: "' + package + '"', cask)
