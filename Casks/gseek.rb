@@ -1,11 +1,11 @@
 cask "gseek" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "0.1.2"
-  sha256 arm64_linux:  "401713f5db95bf5460c08b9d7672ef0d2cf19287dd7fe1a13b9f429fdaec9d2a",
-         x86_64_linux: "65734530b0a0686b38af43ad77b8ca42562799ffa93a5650d6993b17d2952bec"
+  version "0.1.3"
+  sha256 arm64_linux:  "5f7b2a2316277c67f4440bd58941395278c71cc1789d371e81f41afcfe839d97",
+         x86_64_linux: "3c8135c2ed59e3cc95b16e7d989e2de2b626465bfa098906916f7bf202df09e7"
 
-  url "https://github.com/FarisZR/GSeek/releases/download/v0.1.2/gseek-linux-#{arch}.tar.gz"
+  url "https://github.com/FarisZR/GSeek/releases/download/v0.1.3/gseek-linux-#{arch}.tar.gz"
   name "GSeek"
   desc "Private multilingual semantic file search for GNOME"
   homepage "https://github.com/FarisZR/GSeek"
