@@ -2,8 +2,8 @@ cask "gseek" do
   arch arm: "aarch64", intel: "x86_64"
 
   version "0.1.3"
-  sha256 arm64_linux:  "0e4d2395c2358a6a707b53067e8f03f37b382a79cdcd1f2e1e83dbb17c972ef9",
-         x86_64_linux: "9c2139c25df27a74329790cca3cb9b7f57ebae05eed2726f98cb267885686652"
+  sha256 arm64_linux:  "5f7b2a2316277c67f4440bd58941395278c71cc1789d371e81f41afcfe839d97",
+         x86_64_linux: "3c8135c2ed59e3cc95b16e7d989e2de2b626465bfa098906916f7bf202df09e7"
 
   url "https://github.com/FarisZR/GSeek/releases/download/v0.1.3/gseek-linux-#{arch}.tar.gz"
   name "GSeek"
