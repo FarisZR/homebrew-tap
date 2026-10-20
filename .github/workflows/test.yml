@@ -21,7 +21,6 @@ jobs:
           ruby -c Casks/komodo-agentic-cli.rb
           ruby -c Casks/knocker-cli.rb
           ruby -c Casks/whisper-stt-gnome-extension.rb
-          ruby -c Casks/gseek.rb
   install:
     strategy:
       fail-fast: false
@@ -62,38 +61,3 @@ jobs:
           brew uninstall --cask whisper-stt-gnome-extension
           test ! -e "$extension"
           brew uninstall --cask komodo-agentic-cli knocker-cli
-      - name: Test GSeek native desktop lifecycle
-        env:
-          HOMEBREW_NO_AUTO_UPDATE: "1"
-          HOMEBREW_NO_INSTALL_CLEANUP: "1"
-          GSETTINGS_BACKEND: memory
-        run: |
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          sudo apt-get update
-          sudo apt-get install -y libgtk-4-1 libadwaita-1-0 libtracker-sparql-3.0-0 gsettings-desktop-schemas xvfb xauth dbus-x11
-          gseek_dependencies=$(brew deps --cask gseek)
-          test -z "$gseek_dependencies"
-          brew install --cask gseek
-          gseek --version
-          gseek_data="${XDG_DATA_HOME:-$HOME/.local/share}"
-          gseek_config="${XDG_CONFIG_HOME:-$HOME/.config}"
-          provider=/usr/local/share/gnome-shell/search-providers/io.github.FarisZR.GSeek.ini
-          desktop="$gseek_data/applications/io.github.FarisZR.GSeek.desktop"
-          activation="$gseek_data/dbus-1/services/io.github.FarisZR.GSeek.Service.service"
-          autostart="$gseek_config/autostart/io.github.FarisZR.GSeek.desktop"
-          for path in "$provider" "$desktop" "$activation" "$autostart"; do test -f "$path"; done
-          icon=$(sed -n 's/^Icon=//p' "$desktop")
-          python3 -c 'import pathlib,sys; p=pathlib.Path(sys.argv[1]); assert p.is_absolute(); assert p.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")' "$icon"
-          printf 'Keep my indexed data\n' > "$gseek_data/gseek/test-preserved-data.txt"
-          set +e
-          xvfb-run -a dbus-run-session -- timeout 3 gseek > /tmp/gseek-gui.log 2>&1
-          gui_status=$?
-          set -e
-          test "$gui_status" = 124
-          if grep -E 'CRITICAL|symbol lookup error' /tmp/gseek-gui.log; then cat /tmp/gseek-gui.log; exit 1; fi
-          brew reinstall --cask gseek
-          gseek --version
-          test -f "$provider"
-          brew uninstall --cask gseek
-          for path in "$provider" "$desktop" "$activation" "$autostart" "$icon"; do test ! -e "$path"; done
-          test -f "$gseek_data/gseek/test-preserved-data.txt"

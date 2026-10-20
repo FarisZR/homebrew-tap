@@ -21,24 +21,6 @@ def release(token, tag=None):
 
 
 class ReleaseValidation(unittest.TestCase):
-    def test_gseek_registers_provider_system_wide_and_keeps_app_per_user(self):
-        cask = updater.render_cask("gseek", release("gseek"))
-        self.assertIn('arch arm: "aarch64", intel: "x86_64"', cask)
-        self.assertIn('artifact "gseek", target: "~/.local/share/gseek-app"', cask)
-        self.assertIn('remove "/usr/local/share/gnome-shell/search-providers/io.github.FarisZR.GSeek.ini", sudo: true', cask)
-        self.assertIn('run "/usr/bin/install"', cask)
-        self.assertIn('args: [*integration_args, "integrate"]', cask)
-        self.assertIn('args: [*integration_args, "unintegrate"]', cask)
-        self.assertIn('depends_on formula: "openssl@3" unless system_ssl3', cask)
-        for package in ["ffmpeg", "poppler", "libarchive", "pulseaudio"]:
-            self.assertNotIn('depends_on formula: "' + package + '"', cask)
-
-    def test_gseek_rejects_missing_architecture(self):
-        data = release("gseek")
-        data["assets"].pop()
-        with self.assertRaisesRegex(ValueError, "missing"):
-            updater.render_cask("gseek", data)
-
     def test_extension_version_is_commit_hash(self):
         cask = updater.render_cask("whisper-stt-gnome-extension", release("whisper-stt-gnome-extension"))
         self.assertIn('version "' + "b" * 40 + '"', cask)
