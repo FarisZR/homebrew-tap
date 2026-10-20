@@ -39,7 +39,6 @@ jobs:
           ruby -c Casks/komodo-agentic-cli.rb
           ruby -c Casks/knocker-cli.rb
           ruby -c Casks/whisper-stt-gnome-extension.rb
-          ruby -c Casks/gseek.rb
       - name: Commit package updates
         run: |
           git add Casks/

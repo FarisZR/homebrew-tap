@@ -6,7 +6,6 @@ import json
 import os
 from pathlib import Path
 import re
-import runpy
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,12 +30,6 @@ PROJECTS = {
         "name": "Whisper STT GNOME Extension",
         "description": "GNOME dictation using an OpenAI-compatible speech-to-text endpoint",
         "assets": {"portable": "whisper-stt-gnome-extension.tar.gz"},
-    },
-    "gseek": {
-        "repo": "FarisZR/GSeek",
-        "name": "GSeek",
-        "description": "Private multilingual semantic file search for GNOME",
-        "assets": {"arm64_linux": "gseek-linux-aarch64.tar.gz", "x86_64_linux": "gseek-linux-x86_64.tar.gz"},
     },
 }
 
@@ -82,11 +75,6 @@ def render_cask(token, release):
             raise ValueError(f"{project['repo']} {tag}: missing {name}; release build may still be running")
         url = f"https://github.com/{project['repo']}/releases/download/{tag}/{name}"
         checksums[architecture] = asset_checksum(assets[name], url)
-    if token == "gseek":
-        # Same renderer as GSeek's release workflow. The release-contract tests
-        # cover the system provider artifact and the per-user lifecycle hooks.
-        render = runpy.run_path(str(ROOT / "scripts/gseek_cask.py"))["render"]
-        return render(version, f"https://github.com/{project['repo']}/releases/download/{tag}/gseek-linux-#{{arch}}.tar.gz", checksums["arm64_linux"], checksums["x86_64_linux"])
     if token == "whisper-stt-gnome-extension":
         return "\n".join([
             f'cask "{token}" do',
