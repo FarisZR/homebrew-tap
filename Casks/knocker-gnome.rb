@@ -1,8 +1,8 @@
 cask "knocker-gnome" do
-  version "6194492be2769d0c338a844a3d1f2add75f0f344"
-  sha256 "d2cd86d935eabbe61fd8292162890817ebf84d3a00312de33c48a78b17f025db"
+  version "b978a04bdd77208cb4a59a371e558d41a232859b"
+  sha256 "2a1365b80c3a771b2c1ac68cb66f187d590eb3c4db6fcfdfd52275364e6a2bf6"
 
-  url "https://github.com/FarisZR/knocker-gnome/releases/download/build-6194492be2769d0c338a844a3d1f2add75f0f344/knocker-gnome.tar.gz"
+  url "https://github.com/FarisZR/knocker-gnome/releases/download/build-b978a04bdd77208cb4a59a371e558d41a232859b/knocker-gnome.tar.gz"
   name "Knocker GNOME Extension"
   desc "GNOME Quick Settings for the Knocker port knocking service"
   homepage "https://github.com/FarisZR/knocker-gnome"
