@@ -29,7 +29,8 @@ brew install --cask knocker-gnome
 | `knocker-cli` | `knocker` | [Knocker CLI](https://github.com/FarisZR/knocker-cli) |
 | `komodo-agentic-cli` | `km` | [Komodo Agentic CLI](https://github.com/FarisZR/komodo-agentic-cli/blob/agentic-cli/bin/cli/README.md) |
 | `whisper-stt-gnome-extension` | GNOME dictation shortcut | [Whisper STT GNOME Extension](https://github.com/FarisZR/whisper-stt-gnome-extension) |
-| `knocker-gnome` | GNOME Quick Settings | [Knocker GNOME Extension](https://github.com/FarisZR/knocker-gnome) |
+| `knocker-gnome` | Stable GNOME Quick Settings | [Knocker GNOME Extension](https://github.com/FarisZR/knocker-gnome) |
+| `knocker-gnome@main` | Latest main commit | [Development prerelease](https://github.com/FarisZR/knocker-gnome/releases/tag/%40main) |
 
 The dictation extension requires GNOME Shell 49, 50 or 51. It installs into
 `~/.local/share/gnome-shell/extensions/whisper-stt@fariszr.com` for the user
@@ -52,7 +53,12 @@ The Knocker extension supports GNOME Shell 48–51 and installs into
 After installation, log out/in and run `gnome-extensions enable Knocker@fariszr.com`.
 Use `gnome-extensions prefs Knocker@fariszr.com` for extension preferences. Back up
 any existing manual extension directory before the first cask installation.
-Commit builds and version releases are both synchronized automatically.
+The default `knocker-gnome` package tracks the latest tagged stable release.
+For the latest main commit, use `brew install --cask knocker-gnome@main` instead.
+That channel follows the GitHub `@main` prerelease and pins immutable commit assets.
+The two casks conflict because they own the same extension directory. Uninstall the
+installed cask before switching; preferences and knocker.service are preserved.
+Both channels synchronize automatically.
 
 ## Update
 

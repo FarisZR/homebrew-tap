@@ -68,4 +68,15 @@ jobs:
           test -f "$extension/schemas/gschemas.compiled"
           brew uninstall --cask knocker-gnome
           test ! -e "$extension"
+          brew install --cask knocker-gnome@main
+          test -f "$extension/schemas/gschemas.compiled"
+          python3 -c 'import json, re, sys; metadata = json.load(open(sys.argv[1])); assert re.fullmatch("[0-9a-f]{40}", metadata["build-commit"])' "$extension/metadata.json"
+          if brew install --cask knocker-gnome; then
+            echo 'Stable and main channels must not coexist'
+            exit 1
+          fi
+          test -f "$extension/schemas/gschemas.compiled"
+          brew reinstall --cask knocker-gnome@main
+          brew uninstall --cask knocker-gnome@main
+          test ! -e "$extension"
           brew uninstall --cask komodo-agentic-cli knocker-cli

@@ -8,6 +8,7 @@ cask "knocker-gnome" do
   homepage "https://github.com/FarisZR/knocker-gnome"
 
   depends_on :linux
+  conflicts_with cask: "knocker-gnome@main"
 
   artifact "Knocker@fariszr.com",
            target: "~/.local/share/gnome-shell/extensions/Knocker@fariszr.com"

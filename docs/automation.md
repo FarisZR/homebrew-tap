@@ -50,8 +50,11 @@ as its numeric version and the full hash as `version-name`.
 
 Knocker GNOME uses the same commit-release process, plus version tags. Its build
 workflow checks real GNOME 48–51 sessions before publishing; its portable archive
-contains `Knocker@fariszr.com` with compiled schemas. The updater accepts both
-`build-<40 lowercase hex characters>` and semantic version tags for this extension.
+contains `Knocker@fariszr.com` with compiled schemas. The default Knocker cask
+accepts stable version tags only. Its `@main` cask
+resolves the moving Git ref to a `build-<40 lowercase hex characters>` prerelease,
+then pins that immutable release URL and digest. The two casks declare a mutual
+conflict because they own the same UUID directory.
 Extension install directories, archive names and requirements are project data,
 so both extensions share the same renderer. The existing Whisper tag policy stays
 commit-only.
@@ -83,12 +86,14 @@ Each run checks out `main`, tests the updater, generates casks, validates their
 Ruby syntax, and commits changed files under `Casks/` to `main` as
 `github-actions[bot]`. Unchanged releases produce no commit.
 
-The updater queries GitHub's `releases/latest` endpoint for each configured
-project. It accepts no caller-supplied repository, tag, or URL. Drafts and
-prereleases are rejected. CLI tags must match the supported version pattern,
+The updater queries GitHub's `releases/latest` endpoint for default packages.
+The explicit main channel resolves the fixed `@main` ref to its immutable build
+release instead. It accepts no caller-supplied repository, tag, or URL. Drafts are
+rejected everywhere; prereleases are accepted only in the main channel. CLI tags must match the supported version pattern,
 including stable suffixes such as `v2.2.0-agentic`. Whisper accepts only
-`build-` followed by a full 40-character lowercase commit hash. Knocker GNOME also
-accepts version release tags. Commit builds use the hash as their Homebrew version.
+`build-` followed by a full 40-character lowercase commit hash. Knocker GNOME's
+stable channel accepts version tags; its main channel accepts commit prereleases.
+Commit builds use the hash as their Homebrew version.
 
 Each required asset must exist, have state `uploaded`, and use the expected
 release URL. GitHub's SHA-256 asset digest is used when present; otherwise the

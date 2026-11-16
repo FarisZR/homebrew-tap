@@ -1,4 +1,3 @@
-import copy
 import importlib.util
 from pathlib import Path
 import unittest
@@ -10,10 +9,10 @@ spec.loader.exec_module(updater)
 
 
 def release(token, tag=None):
-    tag = tag or ("build-" + "b" * 40 if "extension" in updater.PROJECTS[token] else "v1.2.3")
+    tag = tag or ("build-" + "b" * 40 if "extension" in updater.PROJECTS[token] and token != "knocker-gnome" else "v1.2.3")
     project = updater.PROJECTS[token]
     return {
-        "tag_name": tag, "draft": False, "prerelease": False,
+        "tag_name": tag, "draft": False, "prerelease": token.endswith("@main"),
         "assets": [{"name": name, "state": "uploaded", "digest": "sha256:" + "a" * 64,
                     "browser_download_url": f"https://github.com/{project['repo']}/releases/download/{tag}/{name}"}
                    for name in project["assets"].values()],
@@ -60,15 +59,40 @@ class ReleaseValidation(unittest.TestCase):
                 updater.main()
             write.assert_not_called()
 
-    def test_knocker_extension_accepts_commit_builds_and_version_releases(self):
-        for tag in ["build-" + "b" * 40, "v1.2.3"]:
-            with self.subTest(tag=tag):
-                cask = updater.render_cask("knocker-gnome", release("knocker-gnome", tag))
+    def test_knocker_stable_and_main_channels_use_separate_versions_and_conflict(self):
+        for token, tag in [("knocker-gnome", "v1.1.0"), ("knocker-gnome@main", "build-" + "b" * 40)]:
+            with self.subTest(token=token):
+                cask = updater.render_cask(token, release(token, tag))
                 self.assertIn(f"/download/{tag}/knocker-gnome.tar.gz", cask)
                 self.assertIn('artifact "Knocker@fariszr.com"', cask)
                 self.assertIn('target: "~/.local/share/gnome-shell/extensions/Knocker@fariszr.com"', cask)
                 self.assertIn("GNOME Shell 48/49/50/51", cask)
+                other = "knocker-gnome" if token.endswith("@main") else "knocker-gnome@main"
+                self.assertIn(f'conflicts_with cask: "{other}"', cask)
                 self.assertNotIn("whisper", cask)
+
+    def test_knocker_stable_rejects_commit_builds_and_prereleases(self):
+        with self.assertRaisesRegex(ValueError, "tag"):
+            updater.render_cask("knocker-gnome", release("knocker-gnome", "build-" + "b" * 40))
+        data = release("knocker-gnome")
+        data["prerelease"] = True
+        with self.assertRaisesRegex(ValueError, "stable"):
+            updater.render_cask("knocker-gnome", data)
+        with self.assertRaisesRegex(ValueError, "tag"):
+            updater.render_cask("knocker-gnome@main", release("knocker-gnome@main", "v1.1.0"))
+
+    def test_main_channel_resolves_moving_tag_to_immutable_release(self):
+        commit = "c" * 40
+        expected = release("knocker-gnome@main", "build-" + commit)
+        with patch.object(updater, "github_json", side_effect=[{"object": {"type": "commit", "sha": commit}}, expected]) as fetch:
+            self.assertEqual(updater.latest_release("FarisZR/knocker-gnome", "@main"), expected)
+            self.assertEqual(fetch.call_args_list[0].args, ("FarisZR/knocker-gnome/git/ref/tags/%40main",))
+            self.assertEqual(fetch.call_args_list[1].args, (f"FarisZR/knocker-gnome/releases/tags/build-{commit}",))
+
+    def test_main_channel_rejects_untrusted_tag_target(self):
+        with patch.object(updater, "github_json", return_value={"object": {"type": "commit", "sha": "main"}}):
+            with self.assertRaisesRegex(ValueError, "reference a commit"):
+                updater.latest_release("FarisZR/knocker-gnome", "@main")
 
     def test_knocker_extension_missing_asset_or_untrusted_tag_is_rejected(self):
         data = release("knocker-gnome")

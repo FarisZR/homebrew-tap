@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,13 +42,14 @@ PROJECTS = {
         },
     },
     "knocker-gnome": {
+        "conflicts_with": "knocker-gnome@main",
         "repo": "FarisZR/knocker-gnome",
         "name": "Knocker GNOME Extension",
         "description": "GNOME Quick Settings for the Knocker port knocking service",
         "assets": {"portable": "knocker-gnome.tar.gz"},
         "extension": {
             "uuid": "Knocker@fariszr.com",
-            "tags": "commits-and-versions",
+            "tags": "versions",
             "requirements": [
                 "Requires GNOME Shell 48/49/50/51 and a configured knocker.service user unit.",
                 "Install the CLI separately: brew install --cask fariszr/tap/knocker-cli",
@@ -56,15 +58,32 @@ PROJECTS = {
         },
     },
 }
+PROJECTS["knocker-gnome@main"] = {
+    **PROJECTS["knocker-gnome"],
+    "name": "Knocker GNOME Extension (main)",
+    "release": "@main",
+    "conflicts_with": "knocker-gnome",
+    "extension": {**PROJECTS["knocker-gnome"]["extension"], "tags": "commits"},
+}
 
 
-def latest_release(repo):
+def github_json(path):
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "FarisZR-tap"}
     if token := os.environ.get("GH_TOKEN"):
         headers["Authorization"] = f"Bearer {token}"
-    request = Request(f"https://api.github.com/repos/{repo}/releases/latest", headers=headers)
+    request = Request(f"https://api.github.com/repos/{path}", headers=headers)
     with urlopen(request, timeout=60) as response:
         return json.load(response)
+
+
+def latest_release(repo, tag=None):
+    if not tag:
+        return github_json(f"{repo}/releases/latest")
+    ref = github_json(f"{repo}/git/ref/tags/{quote(tag, safe='')}")
+    commit = ref.get("object", {})
+    if commit.get("type") != "commit" or not re.fullmatch(r"[0-9a-f]{40}", commit.get("sha", "")):
+        raise ValueError("Main channel must reference a commit")
+    return github_json(f"{repo}/releases/tags/build-{commit['sha']}")
 
 
 def asset_checksum(asset, expected_url):
@@ -85,13 +104,15 @@ def asset_checksum(asset, expected_url):
 def render_cask(token, release):
     project = PROJECTS[token]
     tag = release.get("tag_name", "")
-    if release.get("draft") or release.get("prerelease"):
-        raise ValueError("Only published stable releases can enter the tap")
+    main_channel = project.get("release") == "@main"
+    if release.get("draft") or bool(release.get("prerelease")) != main_channel:
+        raise ValueError("Only published stable releases belong in the default channel; @main requires a prerelease")
     extension = project.get("extension")
     commit_tag = re.fullmatch(r"build-[0-9a-f]{40}", tag)
     version_tag = re.fullmatch(r"v?\d+\.\d+\.\d+(?:[.+-][A-Za-z0-9.-]+)?", tag)
-    accepts_version = not extension or extension["tags"] == "commits-and-versions"
-    if not ((extension and commit_tag) or (accepts_version and version_tag)):
+    accepts_version = not extension or extension["tags"] == "versions"
+    accepts_commit = extension and extension["tags"] == "commits"
+    if not ((accepts_commit and commit_tag) or (accepts_version and version_tag)):
         raise ValueError(f"Unsupported release tag: {tag!r}")
     version = tag.removeprefix("build-") if commit_tag else tag.removeprefix("v")
     assets = {asset["name"]: asset for asset in release["assets"]}
@@ -115,6 +136,7 @@ def render_cask(token, release):
             f'  homepage "https://github.com/{project["repo"]}"',
             "",
             "  depends_on :linux",
+            *([f'  conflicts_with cask: "{project["conflicts_with"]}"'] if "conflicts_with" in project else []),
             "",
             f'  artifact "{uuid}",',
             f'           target: "~/.local/share/gnome-shell/extensions/{uuid}"',
@@ -158,7 +180,7 @@ def main():
     # Render everything before writing: an incomplete release never partially
     # updates the tap. Every trigger re-reads all latest releases, so old or
     # coalesced dispatch events cannot select an old tag or arbitrary repository.
-    rendered = {token: render_cask(token, latest_release(project["repo"]))
+    rendered = {token: render_cask(token, latest_release(project["repo"], project.get("release")))
                 for token, project in PROJECTS.items()}
     for token, content in rendered.items():
         path = ROOT / "Casks" / f"{token}.rb"
