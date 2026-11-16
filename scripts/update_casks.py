@@ -41,6 +41,21 @@ PROJECTS = {
             "configuration": "Configure your transcription endpoint in:",
         },
     },
+    "jabra-gnome-integration": {
+        "repo": "FarisZR/jabra-gnome-integration",
+        "name": "Jabra GNOME Integration",
+        "description": "Jabra headset auto-connect and pause-on-disconnect for GNOME",
+        "assets": {"portable": "jabra-gnome-integration.tar.gz"},
+        "extension": {
+            "uuid": "jabra-integration@fariszr.com",
+            "tags": "commits",
+            "requirements": [
+                "Requires GNOME Shell 48/49/50/51 and a configured jabridge user service.",
+                "Install jabridge and run jabridge setup before enabling the extension.",
+                "Configure settings with gsettings; see the project README for commands.",
+            ],
+        },
+    },
     "knocker-gnome": {
         "conflicts_with": "knocker-gnome@main",
         "repo": "FarisZR/knocker-gnome",
@@ -145,8 +160,8 @@ def render_cask(token, release):
             *[f"    {line}" for line in extension["requirements"]],
             "    Log out and back in, then enable the extension:",
             f"      gnome-extensions enable {uuid}",
-            f"    {extension['configuration']}",
-            f"      gnome-extensions prefs {uuid}",
+            *([f"    {extension['configuration']}", f"      gnome-extensions prefs {uuid}"]
+              if extension.get("configuration") else []),
             "    After upgrading, log out and back in to load the new build.",
             "  EOS",
             "end", "",

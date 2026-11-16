@@ -23,6 +23,7 @@ Packages are downloaded directly from each source repository's GitHub Releases.
 | `knocker-cli` | `FarisZR/knocker-cli` | `knocker-cli_Linux_arm64.tar.gz` | `knocker-cli_Linux_x86_64.tar.gz` |
 | `komodo-agentic-cli` | `FarisZR/komodo-agentic-cli` | `km-aarch64` | `km-x86_64` |
 | `whisper-stt-gnome-extension` | `FarisZR/whisper-stt-gnome-extension` | `whisper-stt-gnome-extension.tar.gz` | Same portable asset |
+| `jabra-gnome-integration` | `FarisZR/jabra-gnome-integration` | `jabra-gnome-integration.tar.gz` | Same portable asset |
 | `knocker-gnome` | `FarisZR/knocker-gnome` | `knocker-gnome.tar.gz` | Same portable asset |
 
 Knocker's `.goreleaser.yml` uses GoReleaser v2, fixes
@@ -56,10 +57,11 @@ resolves the moving Git ref to a `build-<40 lowercase hex characters>` prereleas
 then pins that immutable release URL and digest. The two casks declare a mutual
 conflict because they own the same UUID directory.
 Extension install directories, archive names and requirements are project data,
-so both extensions share the same renderer. The existing Whisper tag policy stays
-commit-only.
+so the extensions share the same renderer. The existing Whisper tag policy stays
+commit-only. Jabra also follows commit-only rolling builds, with no preferences
+window; its requirements direct users to jabridge setup and GSettings.
 
-All four notifications POST to:
+All source notifications POST to:
 
 ```text
 repos/FarisZR/homebrew-tap/actions/workflows/sync.yml/dispatches

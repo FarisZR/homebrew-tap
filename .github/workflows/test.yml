@@ -79,4 +79,14 @@ jobs:
           brew reinstall --cask knocker-gnome@main
           brew uninstall --cask knocker-gnome@main
           test ! -e "$extension"
+          brew install --cask jabra-gnome-integration
+          extension="$HOME/.local/share/gnome-shell/extensions/jabra-integration@fariszr.com"
+          test -f "$extension/headsetState.js"
+          test -f "$extension/indicator.js"
+          test -f "$extension/schemas/gschemas.compiled"
+          python3 -c 'import json, re, sys; metadata = json.load(open(sys.argv[1])); assert metadata["uuid"] == "jabra-integration@fariszr.com"; assert "51" in metadata["shell-version"]; assert re.fullmatch("[0-9a-f]{40}", metadata["version-name"])' "$extension/metadata.json"
+          brew reinstall --cask jabra-gnome-integration
+          test -f "$extension/schemas/gschemas.compiled"
+          brew uninstall --cask jabra-gnome-integration
+          test ! -e "$extension"
           brew uninstall --cask komodo-agentic-cli knocker-cli

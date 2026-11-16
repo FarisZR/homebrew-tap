@@ -20,6 +20,17 @@ def release(token, tag=None):
 
 
 class ReleaseValidation(unittest.TestCase):
+    def test_jabra_tracks_commits_without_a_preferences_window(self):
+        cask = updater.render_cask("jabra-gnome-integration", release("jabra-gnome-integration"))
+        self.assertIn('version "' + "b" * 40 + '"', cask)
+        self.assertIn('jabra-gnome-integration.tar.gz"', cask)
+        self.assertIn('artifact "jabra-integration@fariszr.com"', cask)
+        self.assertIn('GNOME Shell 48/49/50/51', cask)
+        self.assertIn('jabridge setup', cask)
+        self.assertNotIn('gnome-extensions prefs', cask)
+        with self.assertRaisesRegex(ValueError, "tag"):
+            updater.render_cask("jabra-gnome-integration", release("jabra-gnome-integration", "v1.2.3"))
+
     def test_extension_version_is_commit_hash(self):
         cask = updater.render_cask("whisper-stt-gnome-extension", release("whisper-stt-gnome-extension"))
         self.assertIn('version "' + "b" * 40 + '"', cask)

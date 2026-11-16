@@ -22,6 +22,7 @@ brew install --cask knocker-cli
 brew install --cask komodo-agentic-cli
 brew install --cask whisper-stt-gnome-extension
 brew install --cask knocker-gnome
+brew install --cask jabra-gnome-integration
 ```
 
 | Package | Command | Project and usage |
@@ -29,6 +30,7 @@ brew install --cask knocker-gnome
 | `knocker-cli` | `knocker` | [Knocker CLI](https://github.com/FarisZR/knocker-cli) |
 | `komodo-agentic-cli` | `km` | [Komodo Agentic CLI](https://github.com/FarisZR/komodo-agentic-cli/blob/agentic-cli/bin/cli/README.md) |
 | `whisper-stt-gnome-extension` | GNOME dictation shortcut | [Whisper STT GNOME Extension](https://github.com/FarisZR/whisper-stt-gnome-extension) |
+| `jabra-gnome-integration` | Jabra headset integration | [Jabra GNOME Integration](https://github.com/FarisZR/jabra-gnome-integration) |
 | `knocker-gnome` | Stable GNOME Quick Settings | [Knocker GNOME Extension](https://github.com/FarisZR/knocker-gnome) |
 | `knocker-gnome@main` | Latest main commit | [Development prerelease](https://github.com/FarisZR/knocker-gnome/releases/tag/%40main) |
 
@@ -59,6 +61,13 @@ That channel follows the GitHub `@main` prerelease and pins immutable commit ass
 The two casks conflict because they own the same extension directory. Uninstall the
 installed cask before switching; preferences and knocker.service are preserved.
 Both channels synchronize automatically.
+
+Jabra Integration supports GNOME Shell 48–51. It tracks the latest successful
+main commit with immutable, checksum-verified rolling builds. Install
+[jabridge](https://github.com/Watchdog0x/jabridge) and run `jabridge setup` first.
+Back up an existing manual installation before installing the cask, then log out
+and back in and run `gnome-extensions enable jabra-integration@fariszr.com`.
+See the project README for GSettings commands; there is no preferences window.
 
 ## Update
 
