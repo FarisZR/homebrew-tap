@@ -13,7 +13,7 @@ cask "whisper-stt-gnome-extension" do
            target: "~/.local/share/gnome-shell/extensions/whisper-stt@fariszr.com"
 
   caveats <<~EOS
-    Requires GNOME Shell 49 or 50, GStreamer tools/plugins (including pulseaudio),
+    Requires GNOME Shell 49/50/51, GStreamer tools/plugins (including pulseaudio),
     curl, and libcanberra's canberra-gtk-play for notification sounds.
     Log out and back in, then enable the extension:
       gnome-extensions enable whisper-stt@fariszr.com

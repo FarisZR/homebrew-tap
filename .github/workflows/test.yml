@@ -18,9 +18,7 @@ jobs:
           persist-credentials: false
       - run: python3 -m unittest discover -s tests -v
       - run: |
-          ruby -c Casks/komodo-agentic-cli.rb
-          ruby -c Casks/knocker-cli.rb
-          ruby -c Casks/whisper-stt-gnome-extension.rb
+          for cask in Casks/*.rb; do ruby -c "$cask"; done
   install:
     strategy:
       fail-fast: false
@@ -54,10 +52,20 @@ jobs:
           test -f "$extension/extension.js"
           test -f "$extension/src/core/whisperController.js"
           test -f "$extension/schemas/gschemas.compiled"
-          python3 -c 'import json, sys; metadata = json.load(open(sys.argv[1])); assert metadata["uuid"] == "whisper-stt@fariszr.com"; assert metadata["shell-version"] == ["49", "50"]' "$extension/metadata.json"
+          python3 -c 'import json, sys; metadata = json.load(open(sys.argv[1])); assert metadata["uuid"] == "whisper-stt@fariszr.com"; assert metadata["shell-version"] == ["49", "50", "51"]' "$extension/metadata.json"
           # Reinstallation exercises Homebrew's directory replacement lifecycle.
           brew reinstall --cask whisper-stt-gnome-extension
           test -f "$extension/schemas/gschemas.compiled"
           brew uninstall --cask whisper-stt-gnome-extension
+          test ! -e "$extension"
+          brew install --cask knocker-gnome
+          extension="$HOME/.local/share/gnome-shell/extensions/Knocker@fariszr.com"
+          test -f "$extension/extension.js"
+          test -f "$extension/src/knocker/service.js"
+          test -f "$extension/schemas/gschemas.compiled"
+          python3 -c 'import json, sys; metadata = json.load(open(sys.argv[1])); assert metadata["uuid"] == "Knocker@fariszr.com"; assert metadata["shell-version"] == ["48", "49", "50", "51"]' "$extension/metadata.json"
+          brew reinstall --cask knocker-gnome
+          test -f "$extension/schemas/gschemas.compiled"
+          brew uninstall --cask knocker-gnome
           test ! -e "$extension"
           brew uninstall --cask komodo-agentic-cli knocker-cli

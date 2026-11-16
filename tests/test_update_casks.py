@@ -10,7 +10,7 @@ spec.loader.exec_module(updater)
 
 
 def release(token, tag=None):
-    tag = tag or ("build-" + "b" * 40 if token == "whisper-stt-gnome-extension" else "v1.2.3")
+    tag = tag or ("build-" + "b" * 40 if "extension" in updater.PROJECTS[token] else "v1.2.3")
     project = updater.PROJECTS[token]
     return {
         "tag_name": tag, "draft": False, "prerelease": False,
@@ -59,6 +59,25 @@ class ReleaseValidation(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "missing"):
                 updater.main()
             write.assert_not_called()
+
+    def test_knocker_extension_accepts_commit_builds_and_version_releases(self):
+        for tag in ["build-" + "b" * 40, "v1.2.3"]:
+            with self.subTest(tag=tag):
+                cask = updater.render_cask("knocker-gnome", release("knocker-gnome", tag))
+                self.assertIn(f"/download/{tag}/knocker-gnome.tar.gz", cask)
+                self.assertIn('artifact "Knocker@fariszr.com"', cask)
+                self.assertIn('target: "~/.local/share/gnome-shell/extensions/Knocker@fariszr.com"', cask)
+                self.assertIn("GNOME Shell 48/49/50/51", cask)
+                self.assertNotIn("whisper", cask)
+
+    def test_knocker_extension_missing_asset_or_untrusted_tag_is_rejected(self):
+        data = release("knocker-gnome")
+        data["assets"] = []
+        with self.assertRaisesRegex(ValueError, "missing knocker-gnome.tar.gz"):
+            updater.render_cask("knocker-gnome", data)
+        for tag in ["main", "build-short", 'v1.0.0#{system("bad")}']:
+            with self.subTest(tag=tag), self.assertRaisesRegex(ValueError, "tag"):
+                updater.render_cask("knocker-gnome", release("knocker-gnome", tag))
 
     def test_missing_architecture_is_rejected(self):
         data = release("knocker-cli")

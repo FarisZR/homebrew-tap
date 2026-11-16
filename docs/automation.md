@@ -23,6 +23,7 @@ Packages are downloaded directly from each source repository's GitHub Releases.
 | `knocker-cli` | `FarisZR/knocker-cli` | `knocker-cli_Linux_arm64.tar.gz` | `knocker-cli_Linux_x86_64.tar.gz` |
 | `komodo-agentic-cli` | `FarisZR/komodo-agentic-cli` | `km-aarch64` | `km-x86_64` |
 | `whisper-stt-gnome-extension` | `FarisZR/whisper-stt-gnome-extension` | `whisper-stt-gnome-extension.tar.gz` | Same portable asset |
+| `knocker-gnome` | `FarisZR/knocker-gnome` | `knocker-gnome.tar.gz` | Same portable asset |
 
 Knocker's `.goreleaser.yml` uses GoReleaser v2, fixes
 `project_name: knocker-cli`, maps `amd64` to `x86_64` in archive names, and
@@ -47,7 +48,15 @@ they never publish or dispatch. A separate notification job runs after publicati
 Manual builds on `main` use the same process. GNOME metadata uses the commit count
 as its numeric version and the full hash as `version-name`.
 
-All three notifications POST to:
+Knocker GNOME uses the same commit-release process, plus version tags. Its build
+workflow checks real GNOME 48–51 sessions before publishing; its portable archive
+contains `Knocker@fariszr.com` with compiled schemas. The updater accepts both
+`build-<40 lowercase hex characters>` and semantic version tags for this extension.
+Extension install directories, archive names and requirements are project data,
+so both extensions share the same renderer. The existing Whisper tag policy stays
+commit-only.
+
+All four notifications POST to:
 
 ```text
 repos/FarisZR/homebrew-tap/actions/workflows/sync.yml/dispatches
@@ -77,9 +86,9 @@ Ruby syntax, and commits changed files under `Casks/` to `main` as
 The updater queries GitHub's `releases/latest` endpoint for each configured
 project. It accepts no caller-supplied repository, tag, or URL. Drafts and
 prereleases are rejected. CLI tags must match the supported version pattern,
-including stable suffixes such as `v2.2.0-agentic`. The extension accepts only
-`build-` followed by a full 40-character lowercase commit hash and uses that hash
-as its Homebrew version.
+including stable suffixes such as `v2.2.0-agentic`. Whisper accepts only
+`build-` followed by a full 40-character lowercase commit hash. Knocker GNOME also
+accepts version release tags. Commit builds use the hash as their Homebrew version.
 
 Each required asset must exist, have state `uploaded`, and use the expected
 release URL. GitHub's SHA-256 asset digest is used when present; otherwise the
@@ -102,12 +111,12 @@ glibc/OpenSSL runtime requirements. Packaging does not make these binaries
 static or extend their distribution compatibility. Homebrew installation does
 not install or restart Knocker's systemd service.
 
-The extension is architecture independent. Its archive contains the directory
-`whisper-stt@fariszr.com` with runtime modules, metadata, and compiled schemas.
+Both extensions are architecture independent. Their archives contain their UUID
+directory with runtime modules, metadata, and compiled schemas.
 Homebrew's directory artifact installs it under the invoking user's
 `~/.local/share/gnome-shell/extensions/`. Homebrew owns directory replacement and
 removal; it refuses to silently overwrite a manual installation. GNOME Shell
-49/50 and system GStreamer tools/plugins, curl, and optional notification sound
+49/50/51 and system GStreamer tools/plugins, curl, and optional notification sound
 support are still required. Log out and back in after installation or upgrade;
 enable and configure the extension using `gnome-extensions`.
 

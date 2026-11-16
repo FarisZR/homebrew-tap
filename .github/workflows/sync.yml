@@ -36,9 +36,7 @@ jobs:
         run: python3 scripts/update_casks.py
       - name: Validate Ruby syntax
         run: |
-          ruby -c Casks/komodo-agentic-cli.rb
-          ruby -c Casks/knocker-cli.rb
-          ruby -c Casks/whisper-stt-gnome-extension.rb
+          for cask in Casks/*.rb; do ruby -c "$cask"; done
       - name: Commit package updates
         run: |
           git add Casks/

@@ -27,6 +27,7 @@ each source repository:
 | `FarisZR/knocker-cli` | [Actions secrets](https://github.com/FarisZR/knocker-cli/settings/secrets/actions) |
 | `FarisZR/komodo-agentic-cli` | [Actions secrets](https://github.com/FarisZR/komodo-agentic-cli/settings/secrets/actions) |
 | `FarisZR/whisper-stt-gnome-extension` | [Actions secrets](https://github.com/FarisZR/whisper-stt-gnome-extension/settings/secrets/actions) |
+| `FarisZR/knocker-gnome` | [Actions secrets](https://github.com/FarisZR/knocker-gnome/settings/secrets/actions) |
 
 No PAT is required in the tap repository. Never commit credentials or print
 their values in workflow logs.

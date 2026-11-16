@@ -30,6 +30,30 @@ PROJECTS = {
         "name": "Whisper STT GNOME Extension",
         "description": "GNOME dictation using an OpenAI-compatible speech-to-text endpoint",
         "assets": {"portable": "whisper-stt-gnome-extension.tar.gz"},
+        "extension": {
+            "uuid": "whisper-stt@fariszr.com",
+            "tags": "commits",
+            "requirements": [
+                "Requires GNOME Shell 49/50/51, GStreamer tools/plugins (including pulseaudio),",
+                "curl, and libcanberra's canberra-gtk-play for notification sounds.",
+            ],
+            "configuration": "Configure your transcription endpoint in:",
+        },
+    },
+    "knocker-gnome": {
+        "repo": "FarisZR/knocker-gnome",
+        "name": "Knocker GNOME Extension",
+        "description": "GNOME Quick Settings for the Knocker port knocking service",
+        "assets": {"portable": "knocker-gnome.tar.gz"},
+        "extension": {
+            "uuid": "Knocker@fariszr.com",
+            "tags": "commits-and-versions",
+            "requirements": [
+                "Requires GNOME Shell 48/49/50/51 and a configured knocker.service user unit.",
+                "Install the CLI separately: brew install --cask fariszr/tap/knocker-cli",
+            ],
+            "configuration": "Configure extension preferences in:",
+        },
     },
 }
 
@@ -63,11 +87,13 @@ def render_cask(token, release):
     tag = release.get("tag_name", "")
     if release.get("draft") or release.get("prerelease"):
         raise ValueError("Only published stable releases can enter the tap")
-    pattern = (r"build-[0-9a-f]{40}" if token == "whisper-stt-gnome-extension"
-               else r"v?\d+\.\d+\.\d+(?:[.+-][A-Za-z0-9.-]+)?")
-    if not re.fullmatch(pattern, tag):
+    extension = project.get("extension")
+    commit_tag = re.fullmatch(r"build-[0-9a-f]{40}", tag)
+    version_tag = re.fullmatch(r"v?\d+\.\d+\.\d+(?:[.+-][A-Za-z0-9.-]+)?", tag)
+    accepts_version = not extension or extension["tags"] == "commits-and-versions"
+    if not ((extension and commit_tag) or (accepts_version and version_tag)):
         raise ValueError(f"Unsupported release tag: {tag!r}")
-    version = tag.removeprefix("build-") if token == "whisper-stt-gnome-extension" else tag.removeprefix("v")
+    version = tag.removeprefix("build-") if commit_tag else tag.removeprefix("v")
     assets = {asset["name"]: asset for asset in release["assets"]}
     checksums = {}
     for architecture, name in project["assets"].items():
@@ -75,29 +101,30 @@ def render_cask(token, release):
             raise ValueError(f"{project['repo']} {tag}: missing {name}; release build may still be running")
         url = f"https://github.com/{project['repo']}/releases/download/{tag}/{name}"
         checksums[architecture] = asset_checksum(assets[name], url)
-    if token == "whisper-stt-gnome-extension":
+    if extension:
+        uuid = extension["uuid"]
+        asset_name = project["assets"]["portable"]
         return "\n".join([
             f'cask "{token}" do',
             f'  version "{version}"',
             f'  sha256 "{checksums["portable"]}"',
             "",
-            f'  url "https://github.com/{project["repo"]}/releases/download/{tag}/whisper-stt-gnome-extension.tar.gz"',
+            f'  url "https://github.com/{project["repo"]}/releases/download/{tag}/{asset_name}"',
             f'  name "{project["name"]}"',
             f'  desc "{project["description"]}"',
             f'  homepage "https://github.com/{project["repo"]}"',
             "",
             "  depends_on :linux",
             "",
-            '  artifact "whisper-stt@fariszr.com",',
-            '           target: "~/.local/share/gnome-shell/extensions/whisper-stt@fariszr.com"',
+            f'  artifact "{uuid}",',
+            f'           target: "~/.local/share/gnome-shell/extensions/{uuid}"',
             "",
             "  caveats <<~EOS",
-            "    Requires GNOME Shell 49 or 50, GStreamer tools/plugins (including pulseaudio),",
-            "    curl, and libcanberra's canberra-gtk-play for notification sounds.",
+            *[f"    {line}" for line in extension["requirements"]],
             "    Log out and back in, then enable the extension:",
-            "      gnome-extensions enable whisper-stt@fariszr.com",
-            "    Configure your transcription endpoint in:",
-            "      gnome-extensions prefs whisper-stt@fariszr.com",
+            f"      gnome-extensions enable {uuid}",
+            f"    {extension['configuration']}",
+            f"      gnome-extensions prefs {uuid}",
             "    After upgrading, log out and back in to load the new build.",
             "  EOS",
             "end", "",
